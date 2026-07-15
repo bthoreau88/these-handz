@@ -46,6 +46,11 @@ layout_mode = 2
 size_flags_horizontal = 4
 theme_override_constants/separation = 24
 
+[node name="ModeButton" type="Button" parent="Layout/Buttons"]
+custom_minimum_size = Vector2(280, 80)
+layout_mode = 2
+text = "P2: CPU (NORMAL)"
+
 [node name="FightButton" type="Button" parent="Layout/Buttons"]
 custom_minimum_size = Vector2(260, 80)
 layout_mode = 2
@@ -57,5 +62,6 @@ custom_minimum_size = Vector2(180, 80)
 layout_mode = 2
 text = "RESET"
 
+[connection signal="pressed" from="Layout/Buttons/ModeButton" to="." method="_on_mode_pressed"]
 [connection signal="pressed" from="Layout/Buttons/FightButton" to="." method="_on_fight_pressed"]
 [connection signal="pressed" from="Layout/Buttons/ResetButton" to="." method="_on_reset_pressed"]

@@ -84,4 +84,13 @@ Legend: `[x]` done · `[~]` in progress · `[ ]` not started
 - **Milestone test:** clean install on both platforms, full loop
   menu → fight → rematch with no crashes.
 
+## Solo / demo support (added ahead of schedule)
+
+- [x] CPU opponent (`scripts/ai/AIController.gd`) driving Player 2 through the
+      normal gesture path, so one person can play/demo solo. Difficulties
+      NORMAL / EASY / DUMMY in GameConstants.AI_DIFFICULTY.
+- [x] Character-select toggle for CPU vs 2nd human.
+- [ ] Web (HTML5) export for browser demos on iPhone/Android Safari
+      (native iOS/Android app builds stay in Phase 6 — need a Mac for iOS).
+
 Post-alpha (NOT before): backend (Firebase/Supabase), online, Game 2 roster.

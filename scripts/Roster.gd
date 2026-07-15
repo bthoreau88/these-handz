@@ -25,6 +25,11 @@ const FIGHTERS: Dictionary = {
 static var pick_p1: String = "sol_tigre"
 static var pick_p2: String = "yellow_dog"
 
+# Player 2 can be a CPU so one person can play solo (e.g. on a phone).
+# ai_difficulty is a key into GameConstants.AI_DIFFICULTY.
+static var p2_is_cpu: bool = true
+static var ai_difficulty: String = "NORMAL"
+
 
 static func display_name(id: String) -> String:
 	return FIGHTERS[id]["name"]

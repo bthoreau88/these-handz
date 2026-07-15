@@ -56,6 +56,15 @@ scripts/
     YellowDog.gd                   G1-08 Wild card (brick damage FLAGGED OP)
 ```
 
+## Solo play vs CPU
+
+On the select screen the **P2** button cycles Player 2 between a CPU
+(NORMAL / EASY / DUMMY difficulty) and a second human. With a CPU opponent
+the human controls the whole screen (or keyboard), so the game is playable
+solo — including on a phone. DUMMY is a training dummy that mostly stands and
+occasionally blocks, for practicing combos. CPU tuning lives in
+`GameConstants.AI_DIFFICULTY`.
+
 ## Desktop test controls (Player 1)
 
 `Z` light · `X` medium · `C` heavy · `V` super · `A` Special A · `S` Special B ·

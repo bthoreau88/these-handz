@@ -265,6 +265,40 @@ const YELLOW_DOG: Dictionary = {
 	"smoke_cloud_cooldown_seconds": 5.0,
 }
 
+# --- CPU opponent (AIController.gd) -----------------------------------------
+# The AI feeds gestures through the SAME receive_gesture() path a human uses
+# (Project Rule 2), so it works for every fighter. Three difficulties let a
+# solo player demo the game on one device / phone. Tune feel here only.
+#
+# think_interval : seconds between decisions (bigger = slower, dumber, beatable)
+# approach_range : farther than this, the CPU walks/dashes in
+# attack_range   : within this, the CPU throws attacks
+# aggression     : 0-1 chance it attacks (vs waits) when in range and free
+# block_chance   : 0-1 chance it blocks when the human is attacking in range
+# parry_chance   : 0-1 chance it tries a parry instead of a block
+# special_chance : 0-1 chance an attack decision becomes a special instead
+# super_at_meter : uses super when meter >= this
+const AI_DIFFICULTY: Dictionary = {
+	"DUMMY": {
+		# Training dummy: walks a little, mostly just stands and occasionally
+		# blocks. Great for testing your own combos and hitboxes.
+		"think_interval": 0.6, "approach_range": 999.0, "attack_range": 200.0,
+		"aggression": 0.0, "block_chance": 0.25, "parry_chance": 0.0,
+		"special_chance": 0.0, "super_at_meter": 999.0,
+	},
+	"EASY": {
+		"think_interval": 0.42, "approach_range": 300.0, "attack_range": 210.0,
+		"aggression": 0.45, "block_chance": 0.35, "parry_chance": 0.05,
+		"special_chance": 0.15, "super_at_meter": 100.0,
+	},
+	"NORMAL": {
+		"think_interval": 0.26, "approach_range": 300.0, "attack_range": 210.0,
+		"aggression": 0.7, "block_chance": 0.55, "parry_chance": 0.12,
+		"special_chance": 0.28, "super_at_meter": 100.0,
+	},
+}
+const AI_DEFAULT_DIFFICULTY: String = "NORMAL"
+
 # --- Art / sprite spec (bible §06) — used by tooling & import checks --------
 const SPRITE_BASE_HEIGHT_PX: int = 180   # fighter height at 1x
 const SPRITE_RENDER_SCALE: int = 3       # author art at 3x

@@ -37,8 +37,17 @@ func _ready() -> void:
 	player1.facing = 1
 	player2.facing = -1
 
+	# Solo play: hand Player 2 to the CPU brain (chosen on the select screen).
+	if Roster.p2_is_cpu:
+		var brain := AIController.new()
+		brain.name = "AIController"
+		player2.add_child(brain)
+		brain.setup(player2, Roster.ai_difficulty)
+
 	name_label_p1.text = player1.display_name
 	name_label_p2.text = player2.display_name
+	if Roster.p2_is_cpu:
+		name_label_p2.text += " (CPU)"
 
 	# Health / meter bars (children finished _ready() first, so .meter exists).
 	player1.health_changed.connect(_on_health_changed.bind(health_bar_p1))
@@ -51,7 +60,7 @@ func _ready() -> void:
 	player1.parry_succeeded.connect(_on_parry)
 	player2.parry_succeeded.connect(_on_parry)
 
-	input_router.setup(player1, player2)
+	input_router.setup(player1, player2, Roster.p2_is_cpu)
 
 	round_manager.setup(player1, player2, input_router)
 	round_manager.countdown_tick.connect(_on_countdown_tick)
