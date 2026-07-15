@@ -1,0 +1,12 @@
+# Godot 4
+.godot/
+*.translation
+export_presets.cfg
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Android Studio leftovers (pre-Godot history)
+.idea/caches/
+local.properties

@@ -1,0 +1,13 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/KnotTrap.gd" id="1_knottrap"]
+
+[node name="KnotTrap" type="Area2D"]
+script = ExtResource("1_knottrap")
+
+[node name="Placeholder" type="ColorRect" parent="."]
+offset_left = -35.0
+offset_top = -20.0
+offset_right = 35.0
+offset_bottom = 20.0
+color = Color(0.55, 0.3, 0.8, 0.9)

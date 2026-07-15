@@ -1,0 +1,118 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scenes/FightScene.gd" id="1_scene"]
+[ext_resource type="Script" path="res://scripts/managers/InputRouter.gd" id="4_router"]
+[ext_resource type="Script" path="res://scripts/managers/RoundManager.gd" id="5_rounds"]
+
+[sub_resource type="RectangleShape2D" id="floor_shape"]
+size = Vector2(1280, 60)
+
+[sub_resource type="LabelSettings" id="announce_settings"]
+font_size = 48
+outline_size = 8
+outline_color = Color(0, 0, 0, 1)
+
+[node name="FightScene" type="Node2D"]
+script = ExtResource("1_scene")
+
+[node name="Background" type="ColorRect" parent="."]
+offset_right = 1280.0
+offset_bottom = 720.0
+color = Color(0.13, 0.12, 0.18, 1)
+
+[node name="Floor" type="StaticBody2D" parent="."]
+position = Vector2(640, 680)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Floor"]
+shape = SubResource("floor_shape")
+
+[node name="FloorRect" type="ColorRect" parent="Floor"]
+offset_left = -640.0
+offset_top = -30.0
+offset_right = 640.0
+offset_bottom = 30.0
+color = Color(0.25, 0.23, 0.3, 1)
+
+[node name="SpawnP1" type="Marker2D" parent="."]
+position = Vector2(420, 560)
+
+[node name="SpawnP2" type="Marker2D" parent="."]
+position = Vector2(860, 560)
+
+[node name="InputRouter" type="Node" parent="."]
+script = ExtResource("4_router")
+
+[node name="RoundManager" type="Node" parent="."]
+script = ExtResource("5_rounds")
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="HealthP1" type="ProgressBar" parent="UI"]
+offset_left = 40.0
+offset_top = 30.0
+offset_right = 560.0
+offset_bottom = 54.0
+max_value = 1000.0
+value = 1000.0
+show_percentage = false
+
+[node name="HealthP2" type="ProgressBar" parent="UI"]
+offset_left = 720.0
+offset_top = 30.0
+offset_right = 1240.0
+offset_bottom = 54.0
+fill_mode = 1
+max_value = 1000.0
+value = 1000.0
+show_percentage = false
+
+[node name="MeterP1" type="ProgressBar" parent="UI"]
+offset_left = 40.0
+offset_top = 60.0
+offset_right = 300.0
+offset_bottom = 74.0
+max_value = 100.0
+show_percentage = false
+
+[node name="MeterP2" type="ProgressBar" parent="UI"]
+offset_left = 980.0
+offset_top = 60.0
+offset_right = 1240.0
+offset_bottom = 74.0
+fill_mode = 1
+max_value = 100.0
+show_percentage = false
+
+[node name="NameP1" type="Label" parent="UI"]
+offset_left = 40.0
+offset_top = 80.0
+offset_right = 300.0
+offset_bottom = 104.0
+text = "PLAYER 1"
+
+[node name="NameP2" type="Label" parent="UI"]
+offset_left = 980.0
+offset_top = 80.0
+offset_right = 1240.0
+offset_bottom = 104.0
+text = "PLAYER 2"
+horizontal_alignment = 2
+
+[node name="TimerLabel" type="Label" parent="UI"]
+offset_left = 590.0
+offset_top = 20.0
+offset_right = 690.0
+offset_bottom = 80.0
+theme_override_font_sizes/font_size = 44
+text = "60"
+horizontal_alignment = 1
+
+[node name="AnnounceLabel" type="Label" parent="UI"]
+offset_left = 240.0
+offset_top = 280.0
+offset_right = 1040.0
+offset_bottom = 360.0
+label_settings = SubResource("announce_settings")
+text = ""
+horizontal_alignment = 1
+vertical_alignment = 1
