@@ -1,6 +1,7 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/characters/SolTigre.gd" id="1_fighter"]
+[ext_resource type="Script" path="res://scripts/visual/FighterVisual.gd" id="2_visual"]
 
 [sub_resource type="RectangleShape2D" id="body_shape"]
 size = Vector2(60, 180)
@@ -11,9 +12,5 @@ script = ExtResource("1_fighter")
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("body_shape")
 
-[node name="Placeholder" type="ColorRect" parent="."]
-offset_left = -30.0
-offset_top = -90.0
-offset_right = 30.0
-offset_bottom = 90.0
-color = Color(1, 0.45, 0.1, 1)
+[node name="FighterVisual" type="Node2D" parent="."]
+script = ExtResource("2_visual")

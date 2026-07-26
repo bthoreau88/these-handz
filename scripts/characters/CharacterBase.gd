@@ -180,6 +180,17 @@ func can_act() -> bool:
 	return state == FightState.IDLE
 
 
+# --- Read-outs for the visual layer (FighterVisual.gd) -----------------------
+# The animation puppet reads these so it can pose to the current move without
+# reaching into private state (keeps the sim and the visuals decoupled).
+func get_attack_name() -> String:
+	return _attack_name
+
+
+func get_attack_phase() -> String:
+	return _attack_phase
+
+
 func _handle_swipe(dir: String) -> void:
 	var forward := "right" if facing == 1 else "left"
 	if dir == forward:

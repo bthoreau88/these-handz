@@ -44,6 +44,10 @@ scripts/
     ProjectileBase.gd              Shared projectile/trap logic (arm delay, lifetime)
     BrickProjectile.gd / TigerCompanion.gd / ChainProjectile.gd
     CipherOrb.gd / DotTrap.gd / KnotTrap.gd
+  visual/
+    FighterVisual.gd               Placeholder animation puppet posing off FightState
+  ai/
+    AIController.gd                CPU opponent (feeds gestures like a human)
   characters/
     CharacterBase.gd               Health, FightState machine, damage, meter/parry
     SolTigre.gd                    G1-01 Rushdown + Tiger Companion

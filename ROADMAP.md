@@ -54,7 +54,20 @@ Legend: `[x]` done · `[~]` in progress · `[ ]` not started
 - **Milestone test:** mirror-less match Sol Tigre vs Yellow Dog with all
   specials functional, still placeholder art.
 
-## Phase 4 — Sprites & animation (weeks 15–19)
+## Phase 4 — Sprites & animation (weeks 15–19) — PIPELINE STARTED
+
+Art direction chosen: **puppet-rigged HD anime** (see ART_DIRECTION.md for
+this and the alternative pipelines). Vertical slice underway on Sol Tigre.
+
+- [x] Animation hookup proven: `scripts/visual/FighterVisual.gd` — a code-built
+      placeholder puppet posing off FightState (idle / walk / punch / block /
+      parry / KO), live on Sol Tigre. Real art swaps in at this layer.
+- [ ] Draw Sol Tigre's body parts in Krita, export transparent PNGs
+- [ ] Swap the Polygon2D limbs for Sprite2D parts; move poses into
+      AnimationPlayer clips named to match the states
+- [ ] Author clips to the existing GameConstants frame data (hit lands on the
+      active frame)
+- [ ] First stage background 640×360 @1x
 
 - [ ] Sprite pipeline per bible §06: 180px base @1x, authored 3x,
       32+ frames per fighter, portraits 512×512
