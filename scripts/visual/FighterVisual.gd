@@ -32,7 +32,17 @@ class_name FighterVisual
 extends Node2D
 
 # Part files the slicer writes, in rig order.
-const PART_NAMES: Array[String] = [
+# 16-part layout: hands, feet, and a chest/pelvis split, so wrists, ankles
+# and the waist can all move. This is the current standard.
+const PARTS_16: Array[String] = [
+	"head", "chest", "pelvis",
+	"upper_arm_front", "forearm_front", "hand_front",
+	"upper_arm_back", "forearm_back", "hand_back",
+	"thigh_front", "shin_front", "foot_front",
+	"thigh_back", "shin_back", "foot_back",
+]
+# Older 10-part sheets: welded hands/feet and a single torso.
+const PARTS_10: Array[String] = [
 	"head", "torso",
 	"upper_arm_front", "forearm_front",
 	"upper_arm_back", "forearm_back",
@@ -48,7 +58,10 @@ const JOINT_INSET := 0.16    # joint this far down from a limb image's top
 const BONE_LENGTH := 0.70    # next joint this far down the same image
 const HEAD_PIVOT := 0.88     # head origin this far down the head image (neck)
 const SHOULDER_DROP := 0.12  # shoulder this far down from the torso's top
-const NECK_DROP := 0.06      # neck this far down from the torso's top
+const NECK_DROP := 0.20      # neck this far down from the chest's top
+const HAND_PIVOT := 0.16     # wrist this far down the hand image
+const FOOT_PIVOT := 0.24     # ankle this far down the foot image
+const HIP_DROP := 0.62       # leg sockets this far down the pelvis image
 
 # Folder of sliced part PNGs, e.g. "res://assets/sprites/fighters/sol_tigre".
 # Empty = use flat placeholder limbs.
@@ -61,9 +74,9 @@ const NECK_DROP := 0.06      # neck this far down from the torso's top
 
 var _fighter: CharacterBase
 var _rig: Node2D                    # everything hangs off this; scaled to fit
-var _parts: Dictionary = {}         # name -> Node2D (Sprite2D or Polygon2D)
+var _parts: Dictionary = {}         # joint name -> Node2D
 var _time: float = 0.0
-var _has_art: bool = false
+var _layout: String = ""            # "16", "10", or "" when there is no art
 
 
 func _ready() -> void:
@@ -76,83 +89,126 @@ func _ready() -> void:
 	add_child(_rig)
 
 	var textures := _load_textures()
-	_has_art = textures.size() == PART_NAMES.size()
-	if _has_art:
-		_build_sprite_rig(textures)
-	else:
+	if _layout.is_empty():
 		_build_placeholder_rig()
+	else:
+		_build_sprite_rig(textures)
 
 
 # --- Loading ----------------------------------------------------------------
+# Tries the 16-part layout first, then the older 10-part one.
 func _load_textures() -> Dictionary:
-	var textures: Dictionary = {}
+	_layout = ""
 	if parts_dir.is_empty():
-		return textures
-	for part_name in PART_NAMES:
-		var path := "%s/%s.png" % [parts_dir.rstrip("/"), part_name]
-		if ResourceLoader.exists(path):
-			textures[part_name] = load(path)
-	return textures
+		return {}
+	for candidate in [{"name": "16", "parts": PARTS_16}, {"name": "10", "parts": PARTS_10}]:
+		var textures: Dictionary = {}
+		for part_name in candidate["parts"]:
+			var path := "%s/%s.png" % [parts_dir.rstrip("/"), part_name]
+			if ResourceLoader.exists(path):
+				textures[part_name] = load(path)
+		if textures.size() == (candidate["parts"] as Array).size():
+			_layout = candidate["name"]
+			return textures
+	return {}
 
 
 # --- Rig construction -------------------------------------------------------
+# Built around the WAIST at the origin: the chest extends up from it, the
+# pelvis hangs below it, and limbs socket off those two. The whole thing is
+# scaled once at the end to the bible's fighter height.
 func _build_sprite_rig(textures: Dictionary) -> void:
-	var size_of := func(part_name: String) -> Vector2:
-		return (textures[part_name] as Texture2D).get_size()
+	var is16 := _layout == "16"
+	var chest_texture: Texture2D = textures["chest"] if is16 else textures["torso"]
+	var chest_height: float = chest_texture.get_size().y
 
-	var torso_height: float = size_of.call("torso").y
-	# Work with the hip at the origin; the whole rig gets recentered after.
-	var torso_top := -torso_height
-	var shoulder_y := torso_top + torso_height * SHOULDER_DROP
-	var neck_y := torso_top + torso_height * NECK_DROP
+	# Chest: origin at the waist, image extending upward.
+	var chest := _add_sprite(_rig, chest_texture, Vector2.ZERO, -chest_height * 0.5)
+	var shoulder := Vector2(0.0, -chest_height * (1.0 - SHOULDER_DROP))
+	var neck := Vector2(0.0, -chest_height * (1.0 - NECK_DROP))
 
-	# Back limbs first so they render behind the body.
-	var back_arm := _add_limb_chain(
-			_rig, textures, "upper_arm_back", "forearm_back", Vector2(-8.0, shoulder_y))
-	var back_leg := _add_limb_chain(
-			_rig, textures, "thigh_back", "shin_back", Vector2(-6.0, 0.0))
+	# Pelvis: hangs below the waist and carries the leg sockets. The 10-part
+	# layout has no pelvis, so the legs socket straight off the waist.
+	var pelvis: Node2D = _rig
+	var hip := Vector2.ZERO
+	var pelvis_node: Sprite2D = null
+	if is16:
+		var pelvis_height: float = (textures["pelvis"] as Texture2D).get_size().y
+		pelvis_node = _add_sprite(_rig, textures["pelvis"], Vector2.ZERO, pelvis_height * 0.5)
+		pelvis = pelvis_node
+		hip = Vector2(0.0, pelvis_height * HIP_DROP)
+		# Keep the pelvis behind the chest at the waist overlap.
+		pelvis_node.z_index = -1
+		_rig.move_child(pelvis_node, 0)
 
-	# Torso: origin at the hip, image extending upward.
-	var torso := _add_sprite(_rig, textures["torso"], Vector2.ZERO, -torso_height * 0.5)
-	# Head: origin near the neck stub, image extending upward.
+	# Legs socket off the pelvis, arms and head off the chest, with z_index
+	# putting the far-side limbs behind their parent and the near-side in front.
+	var leg_back := _add_chain(pelvis, textures,
+			_leg_parts(is16, "back"), hip + Vector2(-6.0, 0.0), -2)
+	var leg_front := _add_chain(pelvis, textures,
+			_leg_parts(is16, "front"), hip + Vector2(6.0, 0.0), 2)
+	var arm_back := _add_chain(chest, textures,
+			_arm_parts(is16, "back"), shoulder + Vector2(-8.0, 0.0), -2)
+	var head_height: float = (textures["head"] as Texture2D).get_size().y
 	var head := _add_sprite(
-			_rig, textures["head"], Vector2(0.0, neck_y),
-			-size_of.call("head").y * (HEAD_PIVOT - 0.5))
-
-	# Front limbs last so they render in front.
-	var front_leg := _add_limb_chain(
-			_rig, textures, "thigh_front", "shin_front", Vector2(6.0, 0.0))
-	var front_arm := _add_limb_chain(
-			_rig, textures, "upper_arm_front", "forearm_front", Vector2(9.0, shoulder_y))
+			chest, textures["head"], neck, -head_height * (HEAD_PIVOT - 0.5))
+	var arm_front := _add_chain(chest, textures,
+			_arm_parts(is16, "front"), shoulder + Vector2(9.0, 0.0), 2)
 
 	_parts = {
-		"torso": torso, "head": head,
-		"arm_front": front_arm[0], "elbow_front": front_arm[1],
-		"arm_back": back_arm[0], "elbow_back": back_arm[1],
-		"leg_front": front_leg[0], "knee_front": front_leg[1],
-		"leg_back": back_leg[0], "knee_back": back_leg[1],
+		"chest": chest, "head": head,
+		"arm_front": arm_front[0], "elbow_front": arm_front[1],
+		"arm_back": arm_back[0], "elbow_back": arm_back[1],
+		"leg_front": leg_front[0], "knee_front": leg_front[1],
+		"leg_back": leg_back[0], "knee_back": leg_back[1],
 	}
+	if pelvis_node != null:
+		_parts["pelvis"] = pelvis_node
+	if is16:
+		_parts["wrist_front"] = arm_front[2]
+		_parts["wrist_back"] = arm_back[2]
+		_parts["ankle_front"] = leg_front[2]
+		_parts["ankle_back"] = leg_back[2]
 
-	# Top of the head image, and the sole of the front foot, in rig space.
-	var knee_y: float = size_of.call("thigh_front").y * (BONE_LENGTH - JOINT_INSET)
-	_fit_to_game_scale(
-			neck_y - size_of.call("head").y * HEAD_PIVOT,
-			knee_y + size_of.call("shin_front").y * (1.0 - JOINT_INSET))
+	_fit_to_game_scale(textures, is16, chest_height, head_height)
 
 
-# Adds an upper segment plus a child lower segment hinged at its far end.
-# Returns [upper, lower].
-func _add_limb_chain(parent: Node2D, textures: Dictionary, upper_name: String,
-		lower_name: String, joint: Vector2) -> Array:
-	var upper_size: Vector2 = (textures[upper_name] as Texture2D).get_size()
-	var upper := _add_sprite(
-			parent, textures[upper_name], joint, upper_size.y * (0.5 - JOINT_INSET))
-	var elbow_y: float = upper_size.y * (BONE_LENGTH - JOINT_INSET)
-	var lower_size: Vector2 = (textures[lower_name] as Texture2D).get_size()
-	var lower := _add_sprite(
-			upper, textures[lower_name], Vector2(0.0, elbow_y),
-			lower_size.y * (0.5 - JOINT_INSET))
-	return [upper, lower]
+func _arm_parts(is16: bool, side: String) -> Array[String]:
+	var parts: Array[String] = ["upper_arm_" + side, "forearm_" + side]
+	if is16:
+		parts.append("hand_" + side)
+	return parts
+
+
+func _leg_parts(is16: bool, side: String) -> Array[String]:
+	var parts: Array[String] = ["thigh_" + side, "shin_" + side]
+	if is16:
+		parts.append("foot_" + side)
+	return parts
+
+
+# Builds a limb chain: each segment is a CHILD of the one above it, hinged at
+# that segment's far end, so rotating the upper arm carries the whole arm.
+func _add_chain(parent: Node2D, textures: Dictionary, names: Array[String],
+		joint: Vector2, depth: int) -> Array:
+	var chain: Array = []
+	var attach := parent
+	var at := joint
+	for index in names.size():
+		var texture: Texture2D = textures[names[index]]
+		var height: float = texture.get_size().y
+		var is_tip: bool = index == names.size() - 1 and names.size() > 2
+		# Hands and feet pivot at their own wrist/ankle; bones pivot at the top.
+		var pivot: float = JOINT_INSET
+		if is_tip:
+			pivot = FOOT_PIVOT if names[index].begins_with("foot") else HAND_PIVOT
+		var segment := _add_sprite(attach, texture, at, height * (0.5 - pivot))
+		if index == 0:
+			segment.z_index = depth
+		chain.append(segment)
+		attach = segment
+		at = Vector2(0.0, height * (BONE_LENGTH - pivot))
+	return chain
 
 
 func _add_sprite(parent: Node2D, texture: Texture2D, at: Vector2,
@@ -168,15 +224,31 @@ func _add_sprite(parent: Node2D, texture: Texture2D, at: Vector2,
 
 
 # Scale and recenter the rig so the assembled fighter matches the bible's
-# height spec and stands with its feet on the collision box's bottom edge.
-func _fit_to_game_scale(top_y: float, bottom_y: float) -> void:
+# height spec and stands centred on the fighter's collision box.
+func _fit_to_game_scale(textures: Dictionary, is16: bool, chest_height: float,
+		head_height: float) -> void:
+	var size_of := func(part_name: String) -> float:
+		return (textures[part_name] as Texture2D).get_size().y
+
+	# Highest point: top of the head image.
+	var top_y: float = -chest_height * (1.0 - NECK_DROP) - head_height * HEAD_PIVOT
+
+	# Lowest point: follow the front leg down to the sole.
+	var bottom_y: float = 0.0
+	if is16:
+		bottom_y = size_of.call("pelvis") * HIP_DROP
+	bottom_y += size_of.call("thigh_front") * (BONE_LENGTH - JOINT_INSET)
+	if is16:
+		bottom_y += size_of.call("shin_front") * (BONE_LENGTH - JOINT_INSET)
+		bottom_y += size_of.call("foot_front") * (1.0 - FOOT_PIVOT)
+	else:
+		bottom_y += size_of.call("shin_front") * (1.0 - JOINT_INSET)
+
 	var natural_height: float = bottom_y - top_y
 	if natural_height <= 0.0:
 		return
-	var target: float = float(GameConstants.SPRITE_BASE_HEIGHT_PX)
-	var fit: float = (target / natural_height) * art_scale
+	var fit: float = (float(GameConstants.SPRITE_BASE_HEIGHT_PX) / natural_height) * art_scale
 	_rig.scale = Vector2(fit, fit)
-	# Center vertically on the fighter's origin (hip currently at rig y = 0).
 	_rig.position.y = -((top_y + bottom_y) * 0.5) * fit
 
 
@@ -194,7 +266,7 @@ func _build_placeholder_rig() -> void:
 	var front_arm := _add_placeholder_chain(_rig, Vector2(9.0, shoulder), 11.0, 31.0, 0.0)
 
 	_parts = {
-		"torso": torso, "head": head,
+		"chest": torso, "head": head,
 		"arm_front": front_arm[0], "elbow_front": front_arm[1],
 		"arm_back": back_arm[0], "elbow_back": back_arm[1],
 		"leg_front": front_leg[0], "knee_front": front_leg[1],
@@ -269,7 +341,7 @@ func _pose_idle(delta: float) -> void:
 	var breathe := sin(_time * 2.6)
 	position.y = breathe * 1.5
 	_apply({
-		"torso": breathe * 1.0, "head": -breathe * 1.0,
+		"chest": breathe * 1.0, "pelvis": -breathe * 0.5, "head": -breathe * 1.0,
 		"arm_front": 8.0 + breathe * 3.0, "elbow_front": -18.0,
 		"arm_back": -7.0 - breathe * 3.0, "elbow_back": -14.0,
 		"leg_front": 2.0, "knee_front": 2.0,
@@ -282,7 +354,7 @@ func _pose_walk(delta: float) -> void:
 	position.y = absf(sin(_time * 9.0)) * -2.5
 	var swing := sin(_time * 9.0) * 26.0
 	_apply({
-		"torso": 3.0, "head": -2.0,
+		"chest": 3.0, "pelvis": -2.0, "head": -2.0,
 		"arm_front": -swing * 0.55, "elbow_front": -20.0 - maxf(swing, 0.0) * 0.4,
 		"arm_back": swing * 0.55, "elbow_back": -20.0 + minf(swing, 0.0) * 0.4,
 		"leg_front": swing, "knee_front": maxf(-swing, 0.0) * 0.9,
@@ -298,21 +370,21 @@ func _pose_attack(delta: float) -> void:
 	match _fighter.get_attack_phase():
 		"startup":
 			pose = {
-				"torso": 6.0, "head": -4.0,
-				"arm_front": 40.0, "elbow_front": -95.0,
+				"chest": 6.0, "pelvis": -3.0, "head": -4.0,
+				"arm_front": 40.0, "elbow_front": -95.0, "wrist_front": -12.0,
 				"arm_back": -20.0, "elbow_back": -30.0,
 				"leg_front": -6.0, "knee_front": 6.0, "leg_back": 8.0, "knee_back": 8.0,
 			}
 		"active":
 			pose = {
-				"torso": -9.0, "head": 4.0,
-				"arm_front": -92.0, "elbow_front": -4.0,
+				"chest": -9.0, "pelvis": 5.0, "head": 4.0,
+				"arm_front": -92.0, "elbow_front": -4.0, "wrist_front": 4.0,
 				"arm_back": 26.0, "elbow_back": -40.0,
 				"leg_front": -14.0, "knee_front": 4.0, "leg_back": 14.0, "knee_back": 10.0,
 			}
 		_:
 			pose = {
-				"torso": -2.0, "head": 0.0,
+				"chest": -2.0, "pelvis": 1.0, "head": 0.0,
 				"arm_front": -30.0, "elbow_front": -40.0,
 				"arm_back": 8.0, "elbow_back": -24.0,
 				"leg_front": -6.0, "knee_front": 4.0, "leg_back": 6.0, "knee_back": 8.0,
@@ -322,8 +394,8 @@ func _pose_attack(delta: float) -> void:
 
 func _pose_block(delta: float) -> void:
 	_apply({
-		"torso": -8.0, "head": 6.0,
-		"arm_front": -58.0, "elbow_front": -96.0,
+		"chest": -8.0, "pelvis": 4.0, "head": 6.0,
+		"arm_front": -58.0, "elbow_front": -96.0, "wrist_front": -14.0,
 		"arm_back": -44.0, "elbow_back": -90.0,
 		"leg_front": -6.0, "knee_front": 8.0, "leg_back": 6.0, "knee_back": 10.0,
 	}, delta, 22.0)
@@ -331,7 +403,7 @@ func _pose_block(delta: float) -> void:
 
 func _pose_parry(delta: float) -> void:
 	_apply({
-		"torso": 4.0, "head": -4.0,
+		"chest": 4.0, "pelvis": -2.0, "head": -4.0,
 		"arm_front": -104.0, "elbow_front": -52.0,
 		"arm_back": -50.0, "elbow_back": -70.0,
 		"leg_front": -4.0, "knee_front": 4.0, "leg_back": 4.0, "knee_back": 6.0,
@@ -341,7 +413,7 @@ func _pose_parry(delta: float) -> void:
 func _pose_hitstun(delta: float) -> void:
 	_rig.rotation = lerp(_rig.rotation, deg_to_rad(9.0), clampf(delta * 16.0, 0.0, 1.0))
 	_apply({
-		"torso": 12.0, "head": 14.0,
+		"chest": 12.0, "pelvis": -6.0, "head": 14.0,
 		"arm_front": 34.0, "elbow_front": -30.0,
 		"arm_back": 48.0, "elbow_back": -20.0,
 		"leg_front": 10.0, "knee_front": 6.0, "leg_back": -8.0, "knee_back": 14.0,
@@ -352,7 +424,7 @@ func _pose_ko(delta: float) -> void:
 	# Topple backward onto the floor.
 	_rig.rotation = lerp(_rig.rotation, deg_to_rad(-80.0), clampf(delta * 7.0, 0.0, 1.0))
 	_apply({
-		"torso": 6.0, "head": 18.0,
+		"chest": 6.0, "pelvis": -4.0, "head": 18.0,
 		"arm_front": 30.0, "elbow_front": -14.0,
 		"arm_back": -28.0, "elbow_back": -10.0,
 		"leg_front": -16.0, "knee_front": 22.0, "leg_back": 12.0, "knee_back": 16.0,

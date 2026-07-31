@@ -7,7 +7,10 @@ Renders the fighter in several poses side by side (idle / walk / punch-active /
 block / KO) and writes one preview PNG.
 
 Usage:
-    python3 tools/preview_rig.py assets/sprites/fighters/sol_tigre out.png
+    python3 tools/preview_rig.py assets/sprites/fighters/crown_saint out.png
+
+Requires the 16-part layout (head/chest/pelvis/.../hand_*/foot_*). Older
+10-part folders still run in Godot via its fallback, but not through here.
 
 If a pose looks wrong here it will look wrong in the game — the constants
 below are mirrored from FighterVisual.gd. Keep them in sync.
@@ -24,39 +27,42 @@ JOINT_INSET = 0.16
 BONE_LENGTH = 0.70
 HEAD_PIVOT = 0.88
 SHOULDER_DROP = 0.12
-NECK_DROP = 0.06
+NECK_DROP = 0.20
+HAND_PIVOT = 0.16
+FOOT_PIVOT = 0.24
+HIP_DROP = 0.62
 
 PART_NAMES = [
-    "head", "torso",
-    "upper_arm_front", "forearm_front",
-    "upper_arm_back", "forearm_back",
-    "thigh_front", "shin_front",
-    "thigh_back", "shin_back",
+    "head", "chest", "pelvis",
+    "upper_arm_front", "forearm_front", "hand_front",
+    "upper_arm_back", "forearm_back", "hand_back",
+    "thigh_front", "shin_front", "foot_front",
+    "thigh_back", "shin_back", "foot_back",
 ]
 
 POSES = {
     "idle": {
-        "torso": 0, "head": 0,
+        "chest": 0, "head": 0,
         "arm_front": 8, "elbow_front": -18, "arm_back": -7, "elbow_back": -14,
         "leg_front": 2, "knee_front": 2, "leg_back": -2, "knee_back": 4,
     },
     "walk": {
-        "torso": 3, "head": -2,
+        "chest": 3, "head": -2,
         "arm_front": -14, "elbow_front": -30, "arm_back": 14, "elbow_back": -20,
         "leg_front": 26, "knee_front": 0, "leg_back": -26, "knee_back": 23,
     },
     "punch": {
-        "torso": -9, "head": 4,
+        "chest": -9, "head": 4,
         "arm_front": -92, "elbow_front": -4, "arm_back": 26, "elbow_back": -40,
         "leg_front": -14, "knee_front": 4, "leg_back": 14, "knee_back": 10,
     },
     "block": {
-        "torso": -8, "head": 6,
+        "chest": -8, "head": 6,
         "arm_front": -58, "elbow_front": -96, "arm_back": -44, "elbow_back": -90,
         "leg_front": -6, "knee_front": 8, "leg_back": 6, "knee_back": 10,
     },
     "ko": {
-        "torso": 6, "head": 18,
+        "chest": 6, "head": 18,
         "arm_front": 30, "elbow_front": -14, "arm_back": -28, "elbow_back": -10,
         "leg_front": -16, "knee_front": 22, "leg_back": 12, "knee_back": 16,
         "_root": -80,
@@ -99,42 +105,53 @@ def paste_limb(canvas, image, joint_abs, angle_deg, origin_frac_y):
     return (joint_abs[0] - math.sin(rad) * reach, joint_abs[1] + math.cos(rad) * reach)
 
 
-def chain(canvas, parts, upper_name, lower_name, joint, upper_deg, lower_deg):
-    upper = parts[upper_name]
-    elbow = paste_limb(canvas, upper, joint, upper_deg, JOINT_INSET)
-    lower = parts[lower_name]
-    # The lower segment inherits the upper's rotation (parented in Godot).
-    paste_limb(canvas, lower, elbow, upper_deg + lower_deg, JOINT_INSET)
+def chain(canvas, parts, names, joint, angles):
+    """Walk a limb chain, each segment hinged at the previous one's far end."""
+    at = joint
+    inherited = 0.0
+    for index, name in enumerate(names):
+        image = parts[name]
+        is_tip = index == len(names) - 1 and len(names) > 2
+        pivot = JOINT_INSET
+        if is_tip:
+            pivot = FOOT_PIVOT if name.startswith("foot") else HAND_PIVOT
+        inherited += angles[index]
+        far = paste_limb(canvas, image, at, inherited, pivot)
+        at = far
 
 
 def render(parts, pose, canvas_size):
     canvas = Image.new("RGBA", canvas_size, (0, 0, 0, 0))
-    origin = (canvas_size[0] / 2.0, canvas_size[1] * 0.52)  # hip position
+    waist = (canvas_size[0] / 2.0, canvas_size[1] * 0.44)
 
-    torso_h = parts["torso"].size[1]
-    torso_top = -torso_h
-    # Absolute canvas coordinates for each anchor.
-    shoulder = (origin[0], origin[1] + torso_top + torso_h * SHOULDER_DROP)
-    neck = (origin[0], origin[1] + torso_top + torso_h * NECK_DROP)
-    hip = (origin[0], origin[1])
+    chest_h = parts["chest"].size[1]
+    pelvis_h = parts["pelvis"].size[1]
+    shoulder = (waist[0], waist[1] - chest_h * (1.0 - SHOULDER_DROP))
+    neck = (waist[0], waist[1] - chest_h * (1.0 - NECK_DROP))
+    hip = (waist[0], waist[1] + pelvis_h * HIP_DROP)
 
-    # Back limbs, torso, head, then front limbs — matching Godot draw order.
-    chain(canvas, parts, "upper_arm_back", "forearm_back",
-          (shoulder[0] - 8, shoulder[1]), pose["arm_back"], pose["elbow_back"])
-    chain(canvas, parts, "thigh_back", "shin_back",
-          (hip[0] - 6, hip[1]), pose["leg_back"], pose["knee_back"])
+    # Back limbs, pelvis, chest, head, then front limbs.
+    chain(canvas, parts, ["upper_arm_back", "forearm_back", "hand_back"],
+          (shoulder[0] - 8, shoulder[1]),
+          [pose["arm_back"], pose["elbow_back"], pose.get("wrist_back", 0)])
+    chain(canvas, parts, ["thigh_back", "shin_back", "foot_back"],
+          (hip[0] - 6, hip[1]),
+          [pose["leg_back"], pose["knee_back"], pose.get("ankle_back", 0)])
 
-    paste_limb(canvas, parts["torso"], hip, pose["torso"], 1.0)
+    paste_limb(canvas, parts["pelvis"], waist, pose.get("pelvis", 0), 0.0)
+    paste_limb(canvas, parts["chest"], waist, pose["chest"], 1.0)
     paste_limb(canvas, parts["head"], neck, pose["head"], HEAD_PIVOT)
 
-    chain(canvas, parts, "thigh_front", "shin_front",
-          (hip[0] + 6, hip[1]), pose["leg_front"], pose["knee_front"])
-    chain(canvas, parts, "upper_arm_front", "forearm_front",
-          (shoulder[0] + 9, shoulder[1]), pose["arm_front"], pose["elbow_front"])
+    chain(canvas, parts, ["thigh_front", "shin_front", "foot_front"],
+          (hip[0] + 6, hip[1]),
+          [pose["leg_front"], pose["knee_front"], pose.get("ankle_front", 0)])
+    chain(canvas, parts, ["upper_arm_front", "forearm_front", "hand_front"],
+          (shoulder[0] + 9, shoulder[1]),
+          [pose["arm_front"], pose["elbow_front"], pose.get("wrist_front", 0)])
 
     if "_root" in pose:
         canvas = canvas.rotate(
-            -pose["_root"], resample=Image.BICUBIC, center=origin, expand=False)
+            -pose["_root"], resample=Image.BICUBIC, center=waist, expand=False)
     return canvas
 
 

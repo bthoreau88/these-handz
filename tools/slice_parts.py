@@ -30,8 +30,29 @@ from collections import deque
 from PIL import Image
 import numpy as np
 
-# Part names in the order the sheets lay them out (Prompt B ordering).
-PART_NAMES = [
+# Part names in the order the sheets lay them out.
+# The 16-part layout (current) splits out hands, feet, and chest/pelvis so
+# wrists, ankles, and the waist can move. The 10-part layout is the older
+# sheets. Pick with --parts=10.
+PART_NAMES_16 = [
+    "head",
+    "chest",
+    "pelvis",
+    "upper_arm_front",
+    "forearm_front",
+    "hand_front",
+    "upper_arm_back",
+    "forearm_back",
+    "hand_back",
+    "thigh_front",
+    "shin_front",
+    "foot_front",
+    "thigh_back",
+    "shin_back",
+    "foot_back",
+]
+
+PART_NAMES_10 = [
     "head",
     "torso",
     "upper_arm_front",
@@ -99,23 +120,35 @@ def find_blobs(solid):
 
 
 def reading_order(boxes):
-    """Sort boxes into rows (top band first), left-to-right within each row."""
+    """
+    Sort boxes into rows (top band first), left-to-right within each row.
+
+    Parts on one row vary a lot in height (a hand next to a whole leg), so
+    rows are detected by VERTICAL OVERLAP rather than by matching tops: two
+    parts belong to the same row if their y-ranges overlap by a decent share
+    of the shorter one.
+    """
     if not boxes:
         return []
-    typical = sorted(b["height"] for b in boxes)[len(boxes) // 2]
+
     rows = []
     for box in sorted(boxes, key=lambda b: b["box"][1]):
+        top, bottom = box["box"][1], box["box"][3]
         placed = False
         for row in rows:
-            # Same row if vertical centers are within half a typical height.
-            if abs(row[0]["box"][1] - box["box"][1]) < typical * 0.6:
+            row_top = min(b["box"][1] for b in row)
+            row_bottom = max(b["box"][3] for b in row)
+            overlap = min(bottom, row_bottom) - max(top, row_top)
+            shorter = min(bottom - top, row_bottom - row_top)
+            if shorter > 0 and overlap > shorter * 0.45:
                 row.append(box)
                 placed = True
                 break
         if not placed:
             rows.append([box])
+
     ordered = []
-    for row in rows:
+    for row in sorted(rows, key=lambda r: min(b["box"][1] for b in r)):
         ordered.extend(sorted(row, key=lambda b: b["box"][0]))
     return ordered
 
@@ -130,11 +163,14 @@ def cut(rgb, solid, box):
 
 
 def main():
-    if len(sys.argv) < 3:
+    args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    flags = [a for a in sys.argv[1:] if a.startswith("--")]
+    if len(args) < 2:
         print(__doc__)
         return 1
 
-    sheet_path, out_dir = sys.argv[1], sys.argv[2]
+    part_names = PART_NAMES_10 if "--parts=10" in flags else PART_NAMES_16
+    sheet_path, out_dir = args[0], args[1]
     os.makedirs(out_dir, exist_ok=True)
 
     rgb, solid = load_mask(sheet_path)
@@ -152,7 +188,7 @@ def main():
     print(f"{len(boxes)} blobs -> {len(ordered)} parts")
 
     for index, blob in enumerate(ordered):
-        name = PART_NAMES[index] if index < len(PART_NAMES) else f"part_{index + 1:02d}"
+        name = part_names[index] if index < len(part_names) else f"part_{index + 1:02d}"
         image = cut(rgb, solid, blob["box"])
         out_path = os.path.join(out_dir, f"{name}.png")
         image.save(out_path)

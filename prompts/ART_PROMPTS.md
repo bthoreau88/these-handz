@@ -32,9 +32,45 @@ marks.
 
 ---
 
-## Prompt B — Part-out sheet (what the rig consumes)
+## ⚠️ Trademark check — do this EVERY time
 
-This is the important one. Its output feeds `tools/slice_parts.py` directly.
+Before a sheet goes in the repo, zoom in on the chest, hips, and shoes.
+Generated wardrobe keeps drifting back toward real brands (Ralph Lauren pony,
+Nike swoosh, Air Force 1 silhouettes). Any sheet carrying a real mark cannot
+ship — regenerate it with the brand ban restated. Sheets on hold are prefixed
+`_HOLD_..._TRADEMARKS.png` in `assets/source_sheets/`.
+
+## Prompt A — A-pose rig master (recommended starting point)
+
+One clean, consistent, high-detail figure. Cut it into parts yourself for
+guaranteed-matching pieces.
+
+```
+[STYLE LOCK]
+
+SUBJECT: [NAME] — [age, height, build]. [Wardrobe and identity markers].
+
+TASK: A single full-body RIG MASTER illustration for 2D skeletal animation.
+
+POSE — follow exactly:
+- True side-facing 3/4 view, character facing RIGHT
+- Relaxed A-pose: arms hanging straight down, angled ~25 degrees away from
+  the body so NO limb overlaps the torso or any other limb
+- Legs straight, feet flat, stance shoulder-width, feet NOT touching
+- Head upright, neutral expression
+
+DRAWING REQUIREMENTS:
+- Limbs STRAIGHT and at FULL LENGTH, no foreshortening
+- Completely flat even shadowless lighting, no baked-in shadow direction
+- Full crisp anatomy at shoulders, elbows, wrists, hips, knees, ankles
+- Pure white background, NO drop or contact shadow
+- 1400 pixels tall minimum, full figure only, no text or callouts
+```
+
+## Prompt B — 16-part part-out sheet (what the rig consumes)
+
+Its output feeds `tools/slice_parts.py` directly. The **forbidden** block is
+the important part — without it the model draws amputated cylinder ends.
 
 ```
 [STYLE LOCK]
@@ -95,19 +131,24 @@ proportions. Must read as the same artist and the same game as SOL TIGRE.
 
 ---
 
-## Known cleanup step
+## What went wrong the first time (and the fix)
 
-The generated parts carry flat rounded **joint caps** on their overlap ends.
-The rig tucks most of them under the neighbouring part, but some peek out at
-knees and wrists. Fix in Krita: soften or erase the flat cap so the limb ends
-in drawn anatomy instead of a disc. One pass per fighter, ~20 minutes.
+v1 of Prompt B asked for "rounded caps, extra material at the joint". The
+model read that as literal **cut cylinder ends**, so every limb came back
+looking amputated and the assembled rigs read as segmented mannequins. The
+FORBIDDEN block above is the fix — it bans cross-sections outright and asks
+for anatomy that continues past the joint instead.
+
+Second lesson: ten separately-drawn parts don't agree with each other. The
+16-part sheets are better, but Prompt A (one master figure, cut afterwards)
+remains the most consistent route.
 
 ## Roster status
 
 | # | Fighter | Reference sheet | Part-out | Rigged |
 |---|---------|-----------------|----------|--------|
-| 01 | Sol Tigre | ✅ | ✅ | ✅ |
-| 02 | Crown Saint | — | ✅ | ✅ |
+| 01 | Sol Tigre | ✅ | ⚠️ 10-part; 16-part ON HOLD (trademarks) | ✅ (old rig) |
+| 02 | Crown Saint | ✅ | ✅ 16-part | ✅ |
 | 03 | The Architect | — | — | — |
 | 04 | Dotty | — | — | — |
 | 05 | Fresh | — | — | — |
