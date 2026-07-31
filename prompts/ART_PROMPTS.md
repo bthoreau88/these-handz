@@ -78,26 +78,42 @@ the important part — without it the model draws amputated cylinder ends.
 SUBJECT: [NAME] — [age, height, build]. [Wardrobe and identity markers].
 [Personality in three words].
 
-TASK: Produce a CHARACTER PART-OUT SHEET for 2D skeletal rigging.
+TASK: A CHARACTER PART-OUT SHEET for 2D skeletal rigging — separated body
+parts, laid out flat with clear gaps, on pure white.
 
-Draw the character ONCE in a relaxed neutral side-facing 3/4 stance, then
-present each body part SEPARATED and spaced apart on the same sheet, laid
-out flat with clear gaps between pieces, like disassembled paper-doll parts:
+PARTS (16, each drawn separately and clearly numbered):
+  1  head + neck        2  chest / upper torso    3  pelvis / hips
+  4  upper arm FRONT    5  forearm FRONT          6  hand FRONT
+  7  upper arm BACK     8  forearm BACK           9  hand BACK
+  10 thigh FRONT        11 shin FRONT             12 foot FRONT
+  13 thigh BACK         14 shin BACK              15 foot BACK
+  16 assembled reference figure, full body, on the far left
 
-  1. head + neck stub        2. torso
-  3. upper arm — FRONT       4. forearm + hand — FRONT (relaxed fist)
-  5. upper arm — BACK        6. forearm + hand — BACK (relaxed fist)
-  7. thigh — FRONT           8. shin + foot — FRONT
-  9. thigh — BACK           10. shin + foot — BACK
+This exact order matters — the slicer names files by it.
 
-RULES:
-- Every part drawn from the SAME side-facing 3/4 angle, same light, same scale
-- Each part must OVERLAP generously at the joint end (rounded caps, extra
-  material at shoulder/elbow/hip/knee) so limbs don't gap when rotated
-- Parts NOT touching each other — clear space between every piece
-- Pure white background, no drop shadows under parts
-- Assembled reference figure on the far left, 540 pixels tall
-- Label each part with small plain text beneath it
+ABSOLUTELY FORBIDDEN — these ruin the rig:
+- NO cut-off, capped, hollow, or sliced-tube limb ends
+- NO visible cross-sections, flat discs, or circular caps at any joint
+- NO amputated or "detached mannequin part" look
+- NO robot ball-and-socket or segmented-armor joints
+- NO drop shadows under any part
+- NO foreshortening — every limb at full length, side-on to camera
+
+INSTEAD, at every joint:
+- Draw COMPLETE natural anatomy that continues past where the joint will be —
+  the upper arm includes the whole rounded shoulder and deltoid, the forearm
+  includes the full elbow, the thigh includes the full hip and buttock curve,
+  the shin includes the whole knee and kneecap
+- Pieces should look like they NEST or overlap like layered clothing plates,
+  not like severed segments
+- Every part ends in finished, drawn anatomy or fabric — never a blunt edge
+
+CONSISTENCY (critical):
+- Every single part drawn from the IDENTICAL camera angle
+- Identical flat shadowless lighting on every part
+- Identical line weight, color, and detail level on every part
+- All parts at the same scale, matching the assembled reference exactly
+- Limbs drawn STRAIGHT and relaxed, not bent or posed
 ```
 
 ### Turning a sheet into game assets
