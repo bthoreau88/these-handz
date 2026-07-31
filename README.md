@@ -86,3 +86,16 @@ Player 2 with real gestures (tap, swipe, etc.).
 
 All shipped characters are **original OVS IP** — see bible §02b for the legal
 register before adding any character content.
+
+## Art pipeline (quick reference)
+
+```bash
+# 1. Generate a part-out sheet (see prompts/ART_PROMPTS.md), save to assets/source_sheets/
+# 2. Cut it into individual transparent parts:
+python3 tools/slice_parts.py assets/source_sheets/<name>_parts.png assets/sprites/fighters/<name>
+# 3. Eyeball the rig without opening Godot:
+python3 tools/preview_rig.py assets/sprites/fighters/<name> preview.png
+# 4. Set parts_dir on the fighter scene's FighterVisual node. No code changes.
+```
+
+See `ART_DIRECTION.md` for the pipeline choice and alternatives.

@@ -14,3 +14,4 @@ shape = SubResource("body_shape")
 
 [node name="FighterVisual" type="Node2D" parent="."]
 script = ExtResource("2_visual")
+parts_dir = "res://assets/sprites/fighters/sol_tigre"
