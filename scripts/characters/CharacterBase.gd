@@ -149,7 +149,9 @@ func _compute_x_velocity(delta: float) -> float:
 
 
 func _clamp_to_stage() -> void:
-	var stage_width := get_viewport_rect().size.x
+	# The playable stage is wider than the screen (the camera pans across it),
+	# so this must clamp to the STAGE, not to the viewport.
+	var stage_width := GameConstants.STAGE_PLAY_WIDTH
 	global_position.x = clampf(
 			global_position.x,
 			GameConstants.STAGE_EDGE_MARGIN,

@@ -67,12 +67,18 @@ this and the alternative pipelines). Vertical slice underway on Sol Tigre.
       AnimationPlayer clips named to match the states
 - [ ] Author clips to the existing GameConstants frame data (hit lands on the
       active frame)
-- [ ] First stage background 640×360 @1x
+- [x] Stage system: 4-layer parallax backdrop + fighting-game camera that
+      tracks both fighters and pulls back as they separate. Procedural
+      placeholder renders until real layer art lands (`assets/stages/`).
+- [ ] Real MIAMI DUSK layer art (see Prompt D in prompts/ART_PROMPTS.md)
 
 - [ ] Sprite pipeline per bible §06: 180px base @1x, authored 3x,
       32+ frames per fighter, portraits 512×512
 - [ ] AnimationPlayer/AnimatedSprite2D driven by FightState
-- [ ] First stage background 640×360 @1x
+- [x] Stage system: 4-layer parallax backdrop + fighting-game camera that
+      tracks both fighters and pulls back as they separate. Procedural
+      placeholder renders until real layer art lands (`assets/stages/`).
+- [ ] Real MIAMI DUSK layer art (see Prompt D in prompts/ART_PROMPTS.md)
 - **Milestone test:** both fighters fully animated (idle, walk, all attacks,
   block, parry, hit, KO) at stable 60fps on a mid-range phone.
 

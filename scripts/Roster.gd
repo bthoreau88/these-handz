@@ -30,9 +30,18 @@ static var pick_p2: String = "yellow_dog"
 static var p2_is_cpu: bool = true
 static var ai_difficulty: String = "NORMAL"
 
+# Which backdrop the fight uses; a key into GameConstants.STAGES.
+# Left empty and resolved on read, because a static initialiser can run
+# before the GameConstants autoload exists.
+static var pick_stage: String = ""
+
 
 static func display_name(id: String) -> String:
 	return FIGHTERS[id]["name"]
+
+
+static func stage_id() -> String:
+	return pick_stage if not pick_stage.is_empty() else GameConstants.DEFAULT_STAGE
 
 
 static func load_fighter_scene(id: String) -> PackedScene:

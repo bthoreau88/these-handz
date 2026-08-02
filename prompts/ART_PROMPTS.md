@@ -159,6 +159,40 @@ Second lesson: ten separately-drawn parts don't agree with each other. The
 16-part sheets are better, but Prompt A (one master figure, cut afterwards)
 remains the most consistent route.
 
+## Prompt D — Parallax stage layers
+
+Stages are four layers, back to front. Generate each SEPARATELY at the same
+camera height so they line up. (The `image-extender` tool's Parallax Studio
+mode does this natively — it is a good fit for stages, unlike for fighters.)
+
+```
+[STYLE LOCK — but note the overrides below]
+
+STAGE: [NAME] — [setting, time of day, mood].
+
+Produce the [sky / far / mid / near] layer of a four-layer parallax
+background for a 2D fighting game stage.
+
+LAYER BRIEF:
+- sky : sky, clouds, horizon glow. Fully opaque. No structures.
+- far : distant skyline silhouettes, low contrast, hazy, atmospheric.
+- mid : recognisable buildings, palms, signage. Moderate detail.
+- near: foreground detail sitting just behind the fighters. Darkest layer.
+
+RULES:
+- Wide format, roughly 3:1 — the camera pans horizontally across it
+- Horizon line at the SAME height in every layer so they register
+- Transparent background on far / mid / near; only `sky` is opaque
+- Each layer progressively DARKER and LOWER CONTRAST than the fighters —
+  this is a fighting game and the characters must stay readable at all times
+- No characters, no people, no foreground objects the fighters would clip into
+- No text, no signage with real brand names
+- Flat even lighting, no dramatic shadows crossing the layer
+```
+
+Save as `sky.png` / `far.png` / `mid.png` / `near.png` in
+`assets/stages/<stage_id>/`. They load automatically — no code changes.
+
 ## Roster status
 
 | # | Fighter | Reference sheet | Part-out | Rigged |

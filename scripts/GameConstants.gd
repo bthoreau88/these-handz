@@ -299,6 +299,48 @@ const AI_DIFFICULTY: Dictionary = {
 }
 const AI_DEFAULT_DIFFICULTY: String = "NORMAL"
 
+# --- Stage & camera ----------------------------------------------------------
+# The playable stage is WIDER than the screen so the camera has somewhere to
+# travel — without that, parallax layers never move and the depth is wasted.
+const STAGE_PLAY_WIDTH: float = 1920.0    # world x runs 0 .. this
+const STAGE_GROUND_Y: float = 650.0       # y of the floor surface
+const STAGE_SPAWN_OFFSET: float = 220.0   # each fighter starts this far from center
+
+# Camera follows the midpoint between the fighters and pulls back as they
+# separate, the way every 2D fighter does it.
+const CAMERA_SMOOTH_SPEED: float = 4.0
+const CAMERA_ZOOM_IN: float = 1.0         # zoom when the fighters are close
+const CAMERA_ZOOM_OUT: float = 0.78       # zoom when they are far apart
+const CAMERA_ZOOM_DISTANCE: float = 900.0 # separation that reaches full zoom-out
+const CAMERA_VERTICAL_OFFSET: float = -60.0
+
+# Parallax layers, painted BACK to FRONT. `scroll` is how much a layer moves
+# with the camera: 0.0 = infinitely far away (never moves), 1.0 = locked to
+# the world like the floor. Art files are optional — any layer whose PNG is
+# missing is skipped, and a fighter-friendly placeholder is drawn instead.
+const STAGE_LAYERS: Array = [
+	{"file": "sky.png", "scroll": 0.02},
+	{"file": "far.png", "scroll": 0.20},
+	{"file": "mid.png", "scroll": 0.45},
+	{"file": "near.png", "scroll": 0.75},
+]
+
+# One entry per stage. `dir` holds the layer PNGs above; the colors drive the
+# placeholder backdrop until real art lands.
+const STAGES: Dictionary = {
+	"miami_dusk": {
+		"name": "MIAMI DUSK",
+		"dir": "res://assets/stages/miami_dusk",
+		"sky_top": Color(0.16, 0.13, 0.30),
+		"sky_bottom": Color(0.95, 0.45, 0.35),
+		"far_tint": Color(0.30, 0.22, 0.40),
+		"mid_tint": Color(0.20, 0.15, 0.30),
+		"near_tint": Color(0.11, 0.09, 0.18),
+		"ground": Color(0.17, 0.14, 0.24),
+	},
+}
+const DEFAULT_STAGE: String = "miami_dusk"
+
 # --- Art / sprite spec (bible §06) — used by tooling & import checks --------
 const SPRITE_BASE_HEIGHT_PX: int = 180   # fighter height at 1x
 const SPRITE_RENDER_SCALE: int = 3       # author art at 3x

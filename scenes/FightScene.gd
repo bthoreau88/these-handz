@@ -14,6 +14,8 @@ var player2: CharacterBase
 
 @onready var input_router: InputRouter = $InputRouter
 @onready var round_manager: RoundManager = $RoundManager
+@onready var stage_background: StageBackground = $StageBackground
+@onready var fight_camera: FightCamera = $FightCamera
 
 @onready var health_bar_p1: ProgressBar = $UI/HealthP1
 @onready var health_bar_p2: ProgressBar = $UI/HealthP2
@@ -26,6 +28,9 @@ var player2: CharacterBase
 
 
 func _ready() -> void:
+	# Backdrop first, so it is behind everything the fight adds.
+	stage_background.setup(Roster.stage_id())
+
 	# Fighters come from the select screen via Roster's static picks
 	# (defaults to Sol Tigre vs Yellow Dog when this scene runs standalone).
 	player1 = _spawn_fighter(Roster.pick_p1, 1, $SpawnP1.position)
@@ -59,6 +64,10 @@ func _ready() -> void:
 	player2.desperation_activated.connect(_on_desperation)
 	player1.parry_succeeded.connect(_on_parry)
 	player2.parry_succeeded.connect(_on_parry)
+
+	# The camera frames both fighters — and its motion is what makes the
+	# parallax layers move, so the stage only reads as deep once this runs.
+	fight_camera.setup(player1, player2)
 
 	input_router.setup(player1, player2, Roster.p2_is_cpu)
 

@@ -1,11 +1,13 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scenes/FightScene.gd" id="1_scene"]
 [ext_resource type="Script" path="res://scripts/managers/InputRouter.gd" id="4_router"]
 [ext_resource type="Script" path="res://scripts/managers/RoundManager.gd" id="5_rounds"]
+[ext_resource type="Script" path="res://scripts/stages/StageBackground.gd" id="6_stage"]
+[ext_resource type="Script" path="res://scripts/stages/FightCamera.gd" id="7_camera"]
 
 [sub_resource type="RectangleShape2D" id="floor_shape"]
-size = Vector2(1280, 60)
+size = Vector2(2400, 120)
 
 [sub_resource type="LabelSettings" id="announce_settings"]
 font_size = 48
@@ -15,29 +17,30 @@ outline_color = Color(0, 0, 0, 1)
 [node name="FightScene" type="Node2D"]
 script = ExtResource("1_scene")
 
-[node name="Background" type="ColorRect" parent="."]
-offset_right = 1280.0
-offset_bottom = 720.0
-color = Color(0.13, 0.12, 0.18, 1)
+[node name="StageBackground" type="ParallaxBackground" parent="."]
+script = ExtResource("6_stage")
 
 [node name="Floor" type="StaticBody2D" parent="."]
-position = Vector2(640, 680)
+position = Vector2(960, 710)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Floor"]
 shape = SubResource("floor_shape")
 
 [node name="FloorRect" type="ColorRect" parent="Floor"]
-offset_left = -640.0
-offset_top = -30.0
-offset_right = 640.0
-offset_bottom = 30.0
-color = Color(0.25, 0.23, 0.3, 1)
+offset_left = -1200.0
+offset_top = -60.0
+offset_right = 1200.0
+offset_bottom = 60.0
+color = Color(0.17, 0.14, 0.24, 1)
 
 [node name="SpawnP1" type="Marker2D" parent="."]
-position = Vector2(420, 560)
+position = Vector2(740, 560)
 
 [node name="SpawnP2" type="Marker2D" parent="."]
-position = Vector2(860, 560)
+position = Vector2(1180, 560)
+
+[node name="FightCamera" type="Camera2D" parent="."]
+script = ExtResource("7_camera")
 
 [node name="InputRouter" type="Node" parent="."]
 script = ExtResource("4_router")
