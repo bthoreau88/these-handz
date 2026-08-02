@@ -59,26 +59,27 @@ Legend: `[x]` done · `[~]` in progress · `[ ]` not started
 Art direction chosen: **puppet-rigged HD anime** (see ART_DIRECTION.md for
 this and the alternative pipelines). Vertical slice underway on Sol Tigre.
 
-- [x] Animation hookup proven: `scripts/visual/FighterVisual.gd` — a code-built
-      placeholder puppet posing off FightState (idle / walk / punch / block /
-      parry / KO), live on Sol Tigre. Real art swaps in at this layer.
-- [ ] Draw Sol Tigre's body parts in Krita, export transparent PNGs
-- [ ] Swap the Polygon2D limbs for Sprite2D parts; move poses into
-      AnimationPlayer clips named to match the states
-- [ ] Author clips to the existing GameConstants frame data (hit lands on the
-      active frame)
+**Fighters**
+- [x] Rig proven end to end: `scripts/visual/FighterVisual.gd` poses a jointed
+      puppet off FightState (idle / walk / punch / block / parry / KO)
+- [x] 16-part rig — three-segment limbs (shoulder→elbow→wrist, hip→knee→ankle)
+      plus a chest/pelvis split so the waist twists
+- [x] Asset pipeline: `tools/slice_parts.py` cuts a part-out sheet into
+      transparent PNGs; `tools/preview_rig.py` checks a rig outside Godot
+- [x] CROWN SAINT rigged from clean 16-part art
+- [ ] SOL TIGRE 16-part regen — current sheets ON HOLD, they carry real-world
+      trademarks (see prompts/ART_PROMPTS.md)
+- [ ] Remaining 6 fighters: design → part-out → rig
+- [ ] Graduate poses into AnimationPlayer clips authored to the GameConstants
+      frame data (the hit lands on the active frame)
+- [ ] Portraits 512×512 per bible §06
+
+**Stages**
 - [x] Stage system: 4-layer parallax backdrop + fighting-game camera that
       tracks both fighters and pulls back as they separate. Procedural
       placeholder renders until real layer art lands (`assets/stages/`).
 - [ ] Real MIAMI DUSK layer art (see Prompt D in prompts/ART_PROMPTS.md)
 
-- [ ] Sprite pipeline per bible §06: 180px base @1x, authored 3x,
-      32+ frames per fighter, portraits 512×512
-- [ ] AnimationPlayer/AnimatedSprite2D driven by FightState
-- [x] Stage system: 4-layer parallax backdrop + fighting-game camera that
-      tracks both fighters and pulls back as they separate. Procedural
-      placeholder renders until real layer art lands (`assets/stages/`).
-- [ ] Real MIAMI DUSK layer art (see Prompt D in prompts/ART_PROMPTS.md)
 - **Milestone test:** both fighters fully animated (idle, walk, all attacks,
   block, parry, hit, KO) at stable 60fps on a mid-range phone.
 
