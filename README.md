@@ -81,8 +81,12 @@ Player 2 with real gestures (tap, swipe, etc.).
 
 1. `THESE_HANDZ_Bible_v3.0_PUBLIC_RELEASE.html` — franchise bible (keep a copy
    next to this repo; not committed here).
-2. `ROADMAP.md` — 26-week phased build plan with milestone tests.
-3. This file.
+2. **`HANDOFF.md`** — full project state, what is and isn't verified, open
+   items. **Start here if you are new to this project.**
+3. `ROADMAP.md` — 26-week phased build plan with milestone tests.
+4. `ART_DIRECTION.md` — art pipeline choice and the alternatives.
+5. `prompts/ART_PROMPTS.md` — generation prompts + the trademark check.
+6. This file.
 
 All shipped characters are **original OVS IP** — see bible §02b for the legal
 register before adding any character content.
