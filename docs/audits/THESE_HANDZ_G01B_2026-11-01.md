@@ -92,3 +92,11 @@ References:
 - Manual performance and visual inspection remain pending.
 
 **Next recommended gate: `THESE-HANDZ-G01C — Mobile Movement Design, Export Template Recovery & Physical Device Proof`.** It must establish a workable touch-walk/backdash interaction, generate a real Web build after templates install, then run the full menu → fight → rematch flow on a phone with frame pacing and gesture error logs. Maintain zero-credit and advance-only review governance.
+
+## 7. Independent published-branch verification
+
+After committing the review branch, the actual GitHub branch was fetched into a **fresh detached Git worktree** at `C:\Users\thore\Documents\THESE-HANDZ-G01B-PUBLISHED-PROOF` (separate from both the original MSI checkout and the development review copy), based on commit `9ec5c878ac15f3771827ca22e6e082a9339a5c93`.
+
+Godot 4.7 `--import` completed with exit 0. The five published automated suites ran against the checked-out GitHub code with exit code 0 each: 11/11, 19/19, 13/13, 3/3, and 3/3 = **49/49 PASS**. No source changes were needed to obtain the passing result. This independent run certifies the *review-branch code/tests only*; it does not resolve Web templates, real-phone performance, human gesture comfort or visual production quality.
+
+**Review link:** https://github.com/bthoreau88/these-handz/pull/2 — **DRAFT**, based on the G01A review branch; not merged into `main`.
