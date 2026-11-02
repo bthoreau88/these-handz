@@ -150,7 +150,10 @@ const TAP_MAX_DURATION_MS: int = 220        # press shorter than this = tap
 const TAP_MAX_DISTANCE_PX: float = 24.0     # finger drift allowed in a tap
 const SWIPE_MIN_DISTANCE_PX: float = 60.0   # travel needed to count as a swipe
 const HOLD_MIN_DURATION_MS: int = 450       # press longer than this = charge
-const SPECIAL_SEQUENCE_WINDOW_MS: int = 400 # max gap between the two swipes of ←→ / ↓→
+const SPECIAL_SEQUENCE_WINDOW_MS: int = 400 # max gap between two special swipes
+# G01B: queue a completed touch special during the opener attack until recovery.
+# 30 frames at 60 FPS = 0.5s; prevent down-swipe low from swallowing Special B.
+const SPECIAL_INPUT_BUFFER_FRAMES: int = 30
 
 # --- Specials & projectiles ---------------------------------------------------
 # Spawning a projectile still commits the fighter for a few frames.

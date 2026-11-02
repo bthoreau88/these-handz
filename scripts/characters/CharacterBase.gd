@@ -59,6 +59,8 @@ var _block_held: bool = false       # keyboard D held down
 var _walk_input: int = 0            # -1 / 0 / 1 from walk gestures
 var _pushback: float = 0.0          # decaying knockback velocity (px/s)
 var _dash_frames: int = 0
+var _buffered_special: String = ""
+var _buffer_frames_left: int = 0
 var _cooldowns: Dictionary = {}     # special name -> ready-again msec
 
 
@@ -134,6 +136,7 @@ func _physics_process(delta: float) -> void:
 	parry.tick()
 	_tick_active_hit()
 	_tick_state()
+	_tick_special_buffer()
 
 
 func _compute_x_velocity(delta: float) -> float:
@@ -167,6 +170,12 @@ func receive_gesture(gesture: Dictionary) -> void:
 		return
 
 	if not can_act():
+		# Two-swipe specials must survive their own first-swipe low/medium.
+		# Only buffer while attacking; never queue through stun, parry or KO.
+		if state == FightState.ATTACKING and gesture["type"] == "action" \
+				and gesture.get("action", "") in ["special_a", "special_b"]:
+			_buffered_special = gesture["action"]
+			_buffer_frames_left = GameConstants.SPECIAL_INPUT_BUFFER_FRAMES
 		return
 
 	match gesture["type"]:
@@ -180,6 +189,22 @@ func receive_gesture(gesture: Dictionary) -> void:
 
 func can_act() -> bool:
 	return state == FightState.IDLE
+
+
+# Execute a pending special at the first eligible neutral frame, or discard
+# it when the authored input buffer expires. Never pre-empt the current attack.
+func _tick_special_buffer() -> void:
+	if _buffer_frames_left <= 0:
+		return
+	_buffer_frames_left -= 1
+	if can_act():
+		var action: String = _buffered_special
+		_buffered_special = ""
+		_buffer_frames_left = 0
+		if not action.is_empty():
+			_handle_action(action)
+	elif _buffer_frames_left == 0:
+		_buffered_special = ""
 
 
 # --- Read-outs for the visual layer (FighterVisual.gd) -----------------------
@@ -374,6 +399,8 @@ func take_hit(damage: float, attacker: CharacterBase, hitstun: int,
 			_state_frames += GameConstants.BLOCKSTUN_FRAMES
 		return false
 
+	_buffered_special = "" # cancel any queued special on interruption
+	_buffer_frames_left = 0
 	_apply_damage(damage)
 	meter.on_hit_taken()
 	_pushback = push_dir * GameConstants.PUSHBACK_HIT_SPEED
@@ -401,6 +428,8 @@ func _apply_damage(damage: float) -> void:
 
 # The defender's "12-frame advantage": the parried attacker is locked out.
 func apply_parry_stun() -> void:
+	_buffered_special = ""
+	_buffer_frames_left = 0
 	_end_attack()
 	state = FightState.HITSTUN
 	_state_frames = GameConstants.PARRY_SUCCESS_ADVANTAGE_FRAMES
@@ -499,6 +528,8 @@ func reset_for_round() -> void:
 	_walk_input = 0
 	_pushback = 0.0
 	_dash_frames = 0
+	_buffered_special = ""
+	_buffer_frames_left = 0
 	parry.cancel()
 	modulate.a = 1.0   # undo smoke-cloud style fades
 	global_position = spawn_position
