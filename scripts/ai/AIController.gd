@@ -19,14 +19,17 @@ class_name AIController
 extends Node
 
 var fighter: CharacterBase
+var _round_manager: RoundManager
 var _cfg: Dictionary
 var _think_left: float = 0.0
 var _walking_dir: int = 0   # -1 left, 0 none, 1 right — mirrors held-walk input
 
 
 # FightScene calls this right after adding the controller to the fighter.
-func setup(controlled: CharacterBase, difficulty: String) -> void:
+func setup(controlled: CharacterBase, difficulty: String,
+		match_rounds: RoundManager) -> void:
 	fighter = controlled
+	_round_manager = match_rounds
 	_cfg = GameConstants.AI_DIFFICULTY.get(
 			difficulty, GameConstants.AI_DIFFICULTY[GameConstants.AI_DEFAULT_DIFFICULTY])
 	_think_left = _cfg["think_interval"]
@@ -34,6 +37,11 @@ func setup(controlled: CharacterBase, difficulty: String) -> void:
 
 func _physics_process(delta: float) -> void:
 	if fighter == null or fighter.opponent == null:
+		return
+	# The CPU must obey the same round/countdown lock as a human player.
+	if _round_manager == null or not _round_manager.is_round_live():
+		_stop_walk()
+		_stop_block_if_held()
 		return
 
 	# React to an incoming attack every frame (defense can't wait for the
