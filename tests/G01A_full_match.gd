@@ -111,6 +111,16 @@ func _run() -> void:
 		for j in range(65):
 			await physics_frame
 		_check("CPU engages once round is live", absf(cpu.global_position.x - live_start_x) > 1.0 or cpu._walk_input != 0 or cpu._dash_frames > 0)
+		winner_id = -1
+		solo.round_manager.match_ended.connect(_match_ended)
+		cpu.take_hit(GameConstants.MAX_HEALTH * 2.0, solo.player1, 10)
+		_check("solo CPU KO scores round one", solo.round_manager._wins[1] == 1)
+		var solo_round2: bool = await _until_active(solo, 2)
+		_check("solo CPU match starts round two", solo_round2)
+		if solo_round2:
+			cpu.take_hit(GameConstants.MAX_HEALTH * 2.0, solo.player1, 10)
+			var cpu_match_ended: bool = await _until_match_ended()
+			_check("solo CPU match reaches winner and ends", cpu_match_ended and winner_id == 1)
 	_finish()
 
 func _finish() -> void:
