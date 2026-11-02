@@ -47,7 +47,7 @@ func _ready() -> void:
 		var brain := AIController.new()
 		brain.name = "AIController"
 		player2.add_child(brain)
-		brain.setup(player2, Roster.ai_difficulty)
+		brain.setup(player2, Roster.ai_difficulty, round_manager)
 
 	name_label_p1.text = player1.display_name
 	name_label_p2.text = player2.display_name

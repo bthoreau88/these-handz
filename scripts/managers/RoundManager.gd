@@ -36,6 +36,11 @@ func setup(player1: CharacterBase, player2: CharacterBase, router: InputRouter) 
 	_player2.defeated.connect(_on_player_defeated)
 
 
+func is_round_live() -> bool:
+	# Single authority for allowing either human or CPU combat decisions.
+	return _fighting
+
+
 func start_match() -> void:
 	_wins = {1: 0, 2: 0}
 	_round_number = 0
