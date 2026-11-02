@@ -157,15 +157,19 @@ func _classify_swipe(travel: Vector2, start_pos: Vector2) -> void:
 	var side := "left" if start_pos.x < _half_screen_x() else "right"
 	var now_ms := Time.get_ticks_msec()
 
-	# Sequence specials: ← then →  = Special A;  ↓ then →  = Special B.
-	# TODO(roadmap: polish): mirror these by facing so P2 does →← / ↓←.
-	if dir == "right" and not _last_swipe.is_empty() and _last_swipe["side"] == side \
+	# Mirror special sequences for both fighting directions without reading
+	# character state here (GestureInput remains the sole raw-input authority).
+	# ←→ or →← = Special A; ↓→ or ↓← = Special B.
+	if (dir == "right" or dir == "left") and not _last_swipe.is_empty() \
+			and _last_swipe["side"] == side \
 			and now_ms - _last_swipe["time_ms"] <= GameConstants.SPECIAL_SEQUENCE_WINDOW_MS:
-		if _last_swipe["dir"] == "left":
+		var prior_dir: String = _last_swipe["dir"]
+		if (dir == "right" and prior_dir == "left") \
+				or (dir == "left" and prior_dir == "right"):
 			_last_swipe = {}
 			_emit_action("special_a", "touch", start_pos)
 			return
-		if _last_swipe["dir"] == "down":
+		if prior_dir == "down":
 			_last_swipe = {}
 			_emit_action("special_b", "touch", start_pos)
 			return
