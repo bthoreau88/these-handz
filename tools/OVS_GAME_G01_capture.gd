@@ -45,7 +45,7 @@ func _run() -> void:
 		push_error("G01 visual capture requires a rendered display. Do not run --headless.")
 		quit(2)
 		return
-	var dir_abs: String = ProjectSettings.globalize_path("user://OVS_GAME_G01_visual")
+	var dir_abs: String = ProjectSettings.globalize_path("user://OVS_GAME_G01_visual_" + str(int(Time.get_unix_time_from_system())))
 	var dir_err: Error = DirAccess.make_dir_recursive_absolute(dir_abs)
 	if dir_err != OK:
 		push_error("G01 cannot create visual evidence directory: " + str(dir_err))
