@@ -59,6 +59,8 @@ var _block_held: bool = false       # keyboard D held down
 var _walk_input: int = 0            # -1 / 0 / 1 from walk gestures
 var _pushback: float = 0.0          # decaying knockback velocity (px/s)
 var _dash_frames: int = 0
+var _dash_direction: int = 0
+var _dash_speed: float = 0.0
 var _buffered_special: String = ""
 var _buffer_frames_left: int = 0
 var _cooldowns: Dictionary = {}     # special name -> ready-again msec
@@ -143,7 +145,7 @@ func _compute_x_velocity(delta: float) -> float:
 	var x := 0.0
 	if _dash_frames > 0:
 		_dash_frames -= 1
-		x = facing * GameConstants.DASH_SPEED
+		x = _dash_direction * _dash_speed
 	elif state == FightState.IDLE:
 		x = _walk_input * tuning.get("walk_speed", GameConstants.WALK_SPEED)
 	# Pushback stacks on top and bleeds off over a few frames.
@@ -167,6 +169,13 @@ func receive_gesture(gesture: Dictionary) -> void:
 	# could get stuck blocking or walking forever.
 	if gesture["type"] == "action" and String(gesture["action"]).ends_with("_end"):
 		_handle_release(gesture["action"])
+		return
+
+	# Held walk is an intent, not a free movement action: record its press
+	# while attacking so the fighter starts walking on recovery.
+	if gesture["type"] == "action" and gesture.get("action", "") in [
+			"walk_left_start", "walk_right_start"] and state != FightState.KO:
+		_handle_action(gesture["action"])
 		return
 
 	if not can_act():
@@ -231,7 +240,9 @@ func _handle_swipe(dir: String) -> void:
 		start_attack("jump_attack")
 	elif dir == "down":
 		start_attack("low")
-	# Swipe away from the opponent: TODO(roadmap: movement pass): backdash.
+	elif dir != "up" and dir != "down":
+		# An outward swipe is a bounded backdash, not another attack.
+		_start_backdash()
 
 
 func _handle_action(action: String) -> void:
@@ -277,7 +288,15 @@ func _distance_to_opponent() -> float:
 
 
 func _start_dash() -> void:
+	_dash_direction = facing
+	_dash_speed = GameConstants.DASH_SPEED
 	_dash_frames = GameConstants.DASH_DURATION_FRAMES
+
+
+func _start_backdash() -> void:
+	_dash_direction = -facing
+	_dash_speed = GameConstants.BACKDASH_SPEED
+	_dash_frames = GameConstants.BACKDASH_DURATION_FRAMES
 
 
 # --- Attacks ----------------------------------------------------------------
@@ -528,6 +547,8 @@ func reset_for_round() -> void:
 	_walk_input = 0
 	_pushback = 0.0
 	_dash_frames = 0
+	_dash_direction = 0
+	_dash_speed = 0.0
 	_buffered_special = ""
 	_buffer_frames_left = 0
 	parry.cancel()

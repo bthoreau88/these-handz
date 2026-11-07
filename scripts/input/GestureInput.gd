@@ -38,6 +38,13 @@ signal gesture_detected(gesture: Dictionary)
 # Each record: {start_pos, start_time_ms, fingers_at_press, consumed}
 var _touches: Dictionary = {}
 
+# Touch-pad fingers are separate from attack fingers. This keeps a held walk
+# from accidentally turning a regular attack tap into a two-finger parry.
+signal movement_state_changed
+var _movement_touches: Dictionary = {}
+var _movement_enabled: bool = false
+var _solo_movement: bool = true
+
 # Last completed 1-finger swipe, used to detect ←→ / ↓→ sequences.
 # {dir: String, time_ms: int, side: String("left"/"right" half of screen)}
 var _last_swipe: Dictionary = {}
@@ -95,15 +102,93 @@ func _handle_key(event: InputEventKey) -> void:
 			_emit_action("charge", "keyboard", Vector2.ZERO)
 
 
+# --- Touch movement geometry + lifecycle (sole raw input owner) -------------
+func configure_movement(enabled: bool, solo: bool = true) -> void:
+	_clear_movement()
+	_movement_enabled = enabled
+	_solo_movement = solo
+	movement_state_changed.emit()
+
+
+func cancel_movement_contacts() -> void:
+	_clear_movement()
+
+
+func _clear_movement() -> void:
+	for finger in _movement_touches.values():
+		if not finger["dir"].is_empty():
+			_emit_action("walk_%s_end" % finger["dir"], "touch", finger["position"])
+	_movement_touches.clear()
+	movement_state_changed.emit()
+
+
+func touch_pad_rect(player_id: int, direction: String) -> Rect2:
+	var viewport: Viewport = get_viewport()
+	if viewport == null:
+		return Rect2()
+	var view: Vector2 = viewport.get_visible_rect().size
+	var width: float = maxf(view.x * GameConstants.TOUCH_PAD_WIDTH_RATIO, GameConstants.TOUCH_PAD_MIN_WIDTH)
+	var height: float = maxf(view.y * GameConstants.TOUCH_PAD_HEIGHT_RATIO, GameConstants.TOUCH_PAD_MIN_HEIGHT)
+	var gap: float = view.x * GameConstants.TOUCH_PAD_GAP_RATIO
+	var margin: float = view.x * GameConstants.TOUCH_PAD_EDGE_RATIO
+	var bottom: float = view.y * GameConstants.TOUCH_PAD_BOTTOM_RATIO
+	var x: float = margin if player_id == 1 else view.x - margin - (width * 2.0 + gap)
+	if direction == "right":
+		x += width + gap
+	return Rect2(x, view.y - height - bottom, width, height)
+
+
+func is_movement_held(player_id: int, direction: String) -> bool:
+	for finger in _movement_touches.values():
+		if finger["player"] == player_id and finger["dir"] == direction:
+			return true
+	return false
+
+
+func _movement_zone(position: Vector2) -> Dictionary:
+	if not _movement_enabled:
+		return {}
+	for player_id in [1, 2]:
+		if player_id == 2 and _solo_movement:
+			continue
+		for direction in ["left", "right"]:
+			if touch_pad_rect(player_id, direction).has_point(position):
+				return {"player": player_id, "dir": direction}
+	return {}
+
+
 # --- Touch recognition ------------------------------------------------------
 func _handle_touch(event: InputEventScreenTouch) -> void:
 	if event.pressed:
+		var zone: Dictionary = _movement_zone(event.position)
+		if not zone.is_empty():
+			# One active direction per player. Ignore a conflicting second
+			# movement finger rather than leaving walk state stuck.
+			for held in _movement_touches.values():
+				if held["player"] == zone["player"]:
+					_movement_touches[event.index] = {
+						"player": zone["player"], "dir": "", "position": event.position}
+					return
+			_movement_touches[event.index] = {
+				"player": zone["player"], "dir": zone["dir"], "position": event.position}
+			_emit_action("walk_%s_start" % zone["dir"], "touch", event.position)
+			movement_state_changed.emit()
+			return
 		_touches[event.index] = {
 			"start_pos": event.position,
 			"start_time_ms": Time.get_ticks_msec(),
 			"fingers_at_press": _touches.size() + 1,
 			"consumed": false,
 		}
+		return
+
+	# Movement release must not become a normal attack tap or charge.
+	if _movement_touches.has(event.index):
+		var held: Dictionary = _movement_touches[event.index]
+		_movement_touches.erase(event.index)
+		if not held["dir"].is_empty():
+			_emit_action("walk_%s_end" % held["dir"], "touch", held["position"])
+		movement_state_changed.emit()
 		return
 
 	# Finger lifted.

@@ -44,7 +44,10 @@ func _on_gesture_detected(gesture: Dictionary) -> void:
 		# Solo match (or keyboard): the human is always Player 1.
 		target = _player1
 	else:
-		var half_x: float = get_viewport().get_visible_rect().size.x * 0.5
+		var viewport: Viewport = get_viewport()
+		if viewport == null:
+			return
+		var half_x: float = viewport.get_visible_rect().size.x * 0.5
 		target = _player1 if gesture["position"].x < half_x else _player2
 
 	target.receive_gesture(gesture)

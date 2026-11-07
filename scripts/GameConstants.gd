@@ -131,6 +131,9 @@ const DEBUG_SHOW_HITBOXES: bool = true
 const WALK_SPEED: float = 300.0
 const DASH_SPEED: float = 650.0
 const DASH_DURATION_FRAMES: int = 10
+# G01C provisional backward evasive step; balance stays centralized here.
+const BACKDASH_SPEED: float = 520.0
+const BACKDASH_DURATION_FRAMES: int = 8
 # Forward swipe means dash when the opponent is farther than this, otherwise
 # it is the medium attack (bible §05: "swipe -> = medium/dash").
 const DASH_TRIGGER_DISTANCE: float = 260.0
@@ -154,6 +157,17 @@ const SPECIAL_SEQUENCE_WINDOW_MS: int = 400 # max gap between two special swipes
 # G01B: queue a completed touch special during the opener attack until recovery.
 # 30 frames at 60 FPS = 0.5s; prevent down-swipe low from swallowing Special B.
 const SPECIAL_INPUT_BUFFER_FRAMES: int = 30
+
+# G01C touch movement geometry uses viewport-relative sizes (landscape-first).
+# The touch zones are also used by the view-only, input-transparent HUD.
+const TOUCH_PAD_WIDTH_RATIO: float = 0.095
+const TOUCH_PAD_HEIGHT_RATIO: float = 0.14
+const TOUCH_PAD_GAP_RATIO: float = 0.018
+const TOUCH_PAD_EDGE_RATIO: float = 0.035
+const TOUCH_PAD_BOTTOM_RATIO: float = 0.03
+const TOUCH_PAD_MIN_WIDTH: float = 60.0
+const TOUCH_PAD_MIN_HEIGHT: float = 54.0
+const TOUCH_PAD_SHOW_DESKTOP: bool = true # Gray-box QA; review before release.
 
 # --- Specials & projectiles ---------------------------------------------------
 # Spawning a projectile still commits the fighter for a few frames.
