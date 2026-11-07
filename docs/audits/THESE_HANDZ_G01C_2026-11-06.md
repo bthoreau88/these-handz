@@ -100,3 +100,15 @@ A local-only/private Wi-Fi HTTP server was set up to host the **filtered** build
 No merge into `main`, no public deployment, no asset/IP clearance, no paid spending, no canonical release. The app remains a gray-box with provisional sprites and placeholder Yellow Dog visuals. Touchscreen device comfort, Safari performance, and rights clearance still need human sign-off.
 
 **Recommended next gate once device evidence exists:** `THESE-HANDZ-G01D — Physical Mobile Acceptance + Visual/IP Authority + Performance Budget`. Run one named matchup across a short repeatable test matrix; confirm stable user feel, original art, and measurable frame pacing before any distribution.
+
+## 9. Independently replayed published source (final review verification)
+
+The exact GitHub source on G01C review branch at commit `2ef3ecc22c6030e28a53264c7c72068890145635` was fetched into a **fresh isolated worktree** `C:\Users\thore\Documents\THESE-HANDZ-G01C-PUBLISHED-PROOF` (not the original or local development folder). Godot 4.7 editor import returned exit 0; all six suites reran independently and exited 0, **73/73 checks and zero stderr errors**.
+
+`tools/G01C_export_web_safe.ps1` then independently produced a fresh Godot Web export and validated exclusion of `_HOLD_`, `TRADEMARKS`, `source_sheets`, and `res://build/` strings from the PCK. Exit code **0**; PCK **2,274,928 bytes**, SHA256 `2129EFEBDFDFADC30BFB93C84729FC13F5A246AAB8840DB29E4239A0E501E3F1`.
+
+**Byte reproducibility qualification:** The earlier G01C development-copy safe pack had the same byte length but different SHA256 (`83A755...`). Both were separately inspected and passed content-exclusion checks. The exact published proof SHA above is the fingerprint for that build only; bit-identical repeated exports have not been established. Do not distribute or sign either build based solely on a branch name.
+
+**Review URL:** https://github.com/bthoreau88/these-handz/pull/4 — stacked DRAFT, no merge to main.
+
+**Final gate status remains:** implementation / engine export / desktop browser pass; actual iPhone Safari human signoff pending.
