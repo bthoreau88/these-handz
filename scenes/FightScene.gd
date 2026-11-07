@@ -71,6 +71,18 @@ func _ready() -> void:
 
 	input_router.setup(player1, player2, Roster.p2_is_cpu)
 
+	# G01C: GestureInput remains the sole raw input reader. The overlay draws
+	# its shared hit zones but ignores pointer events entirely.
+	GestureInput.configure_movement(true, Roster.p2_is_cpu)
+	var touch_layer := CanvasLayer.new()
+	touch_layer.name = "TouchControlsLayer"
+	touch_layer.layer = 2
+	add_child(touch_layer)
+	var touch_visual := TouchControlsVisual.new()
+	touch_visual.name = "MovementButtons"
+	touch_layer.add_child(touch_visual)
+	touch_visual.setup(Roster.p2_is_cpu)
+
 	round_manager.setup(player1, player2, input_router)
 	round_manager.countdown_tick.connect(_on_countdown_tick)
 	round_manager.round_started.connect(_on_round_started)
@@ -78,6 +90,11 @@ func _ready() -> void:
 	round_manager.match_ended.connect(_on_match_ended)
 	round_manager.time_left_changed.connect(_on_time_left_changed)
 	round_manager.start_match()
+
+
+func _exit_tree() -> void:
+	# Never let a held pad carry into CharacterSelect or the next fight.
+	GestureInput.configure_movement(false)
 
 
 func _spawn_fighter(id: String, pid: int, spawn: Vector2) -> CharacterBase:
@@ -113,6 +130,7 @@ func _on_round_started(round_number: int) -> void:
 
 
 func _on_round_ended(winner_id: int, _wins: Dictionary) -> void:
+	GestureInput.cancel_movement_contacts()
 	if winner_id == 0:
 		announce_label.text = "DRAW — RERUN ROUND"
 	else:
