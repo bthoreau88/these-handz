@@ -46,3 +46,4 @@ $receipt = @(
 $receiptPath = Join-Path $ProjectPath "build\G01C_WEB_EXPORT_RECEIPT.txt"
 $receipt | Set-Content -LiteralPath $receiptPath -Encoding UTF8
 $receipt | ForEach-Object { Write-Output $_ }
+exit 0
