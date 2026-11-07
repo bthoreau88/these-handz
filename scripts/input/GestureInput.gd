@@ -110,6 +110,10 @@ func configure_movement(enabled: bool, solo: bool = true) -> void:
 	movement_state_changed.emit()
 
 
+func cancel_movement_contacts() -> void:
+	_clear_movement()
+
+
 func _clear_movement() -> void:
 	for finger in _movement_touches.values():
 		if not finger["dir"].is_empty():
