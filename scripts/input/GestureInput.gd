@@ -123,7 +123,10 @@ func _clear_movement() -> void:
 
 
 func touch_pad_rect(player_id: int, direction: String) -> Rect2:
-	var view: Vector2 = get_viewport().get_visible_rect().size
+	var viewport: Viewport = get_viewport()
+	if viewport == null:
+		return Rect2()
+	var view: Vector2 = viewport.get_visible_rect().size
 	var width: float = maxf(view.x * GameConstants.TOUCH_PAD_WIDTH_RATIO, GameConstants.TOUCH_PAD_MIN_WIDTH)
 	var height: float = maxf(view.y * GameConstants.TOUCH_PAD_HEIGHT_RATIO, GameConstants.TOUCH_PAD_MIN_HEIGHT)
 	var gap: float = view.x * GameConstants.TOUCH_PAD_GAP_RATIO
