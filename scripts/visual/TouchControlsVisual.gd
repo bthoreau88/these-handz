@@ -21,6 +21,8 @@ func setup(solo: bool) -> void:
 
 
 func _draw() -> void:
+	if not is_inside_tree() or get_viewport() == null:
+		return
 	for player_id in [1, 2]:
 		if player_id == 2 and _solo:
 			continue
