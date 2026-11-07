@@ -93,7 +93,10 @@ func _ready() -> void:
 
 
 func _exit_tree() -> void:
-	# Never let a held pad carry into CharacterSelect or the next fight.
+	# Stop the router before releasing held contacts: this node is leaving
+	# the viewport, so input must never be forwarded into a departing scene.
+	if is_instance_valid(input_router):
+		input_router.set_routing_enabled(false)
 	GestureInput.configure_movement(false)
 
 
