@@ -1,0 +1,4 @@
+timestamp_local,device,os_version,browser_version,build_sha256,matchup,round,scenario,facing,attempt,intended_action,recognized_action,executed_action,frame_time_ms,outcome,notes,evidence_file
+,,,,,Sol Tigre vs Yellow Dog,1,menu_to_fight,neutral,1,,,,,NOT_TESTED,Replace template row after actual device test,
+,,,,,Sol Tigre vs Yellow Dog,1,held_move_right,right,1,walk_right_start/hold/end,,,,NOT_TESTED,Record movement start and release separately,
+,,,,,Sol Tigre vs Yellow Dog,1,special_mirrored,left,1,special_a,,,,NOT_TESTED,Repeat 10 per condition,
